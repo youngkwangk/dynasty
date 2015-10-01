@@ -7,7 +7,7 @@ module.exports.processAllPages = (deferred, dynamo, functionName, params)->
 
   stats =
     Count: 0
-      
+
   resultHandler = (err, result) ->
     if err then return deferred.reject(err)
 
@@ -72,7 +72,7 @@ module.exports.batchGetItem = (params, callback, keySchema) ->
     .then (data) ->
       dataTrans.fromDynamo(data.Responses[name])
     .nodeify(callback)
-    
+
 module.exports.getItem = (params, options, callback, keySchema) ->
   awsParams =
     TableName: @name
@@ -145,6 +145,24 @@ module.exports.updateItem = (params, obj, options, callback, keySchema) ->
 
   # Set up the Update Expression
   updateExpression = 'SET ' + _.keys(_.mapKeys obj, (value, key) -> return key + ' = :' + key).join ','
+
+  awsParams =
+    TableName: @name
+    Key: getKey(params, keySchema)
+    ExpressionAttributeValues: expressionAttributeValues
+    UpdateExpression: updateExpression
+
+  @parent.dynamo.updateItemAsync(awsParams)
+
+module.exports.updateItemAdd = (params, obj, options, callback, keySchema) ->
+  key = getKey(params, keySchema)
+
+  # Set up the Expression Attribute Values map.
+  expressionAttributeValues = _.mapKeys obj, (value, key) -> return ':' + key
+  expressionAttributeValues = _.mapValues expressionAttributeValues, (value, key) -> return dataTrans.toDynamo value
+
+  # Set up the Update Expression
+  updateExpression = 'ADD ' + _.keys(_.mapKeys obj, (value, key) -> return key + ' :' + key).join ','
 
   awsParams =
     TableName: @name

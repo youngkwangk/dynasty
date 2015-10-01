@@ -23,7 +23,7 @@ class Table
   findAll: (params, callback = null) ->
     debug "findAll() - #{params}"
     @key.then awsTrans.queryByHashKey.bind(this, params, callback)
-    
+
   # Wrapper around DynamoDB's getItem
   find: (params, options = {}, callback = null) ->
     debug "find() - #{params}"
@@ -54,6 +54,15 @@ class Table
       options = {}
 
     @key.then awsTrans.updateItem.bind(this, params, obj, options, callback)
+
+
+  update_add: (params, obj, options, callback = null) ->
+    debug "update() - " + JSON.stringify obj
+    if _.isFunction options
+      callback = options
+      options = {}
+
+    @key.then awsTrans.updateItemAdd.bind(this, params, obj, options, callback)
 
   ###
   Table Operations
